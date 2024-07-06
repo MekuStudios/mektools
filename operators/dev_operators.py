@@ -1,5 +1,7 @@
 import bpy, io, os, yaml # type: ignore
 import string, random, pathlib
+
+from ..utils.data_classes import BoneData, CustomShapeData, CustomShapeTransformData
 from ..utils.config import data as config
 from ..utils.tools import mode_set, get_addon_absolute_path, import_shape_collection, lists_are_equal
 from ..utils.armature import RM_Armature
@@ -45,22 +47,33 @@ class ARMATURE_OT_ExportBonesToYAML(bpy.types.Operator):
         
         # Loop through all the bones and write changes of only bones that have a custom shape attached
         data = {};
+        # with mode_set(mode="POSE"):
+        #     for bone in armature.pose.bones:
+        #         if bone.custom_shape:
+        #             data[str(bone.name)] = {
+        #                     "name": str(bone.name),
+        #                     "visible": not bone.bone.hide,
+        #                     "shape": bone.custom_shape.name if bone.custom_shape else "None",
+        #                     "color": bone.color.palette,
+        #                     "transforms": {
+        #                         "default": {
+        #                             "scale": list(bone.custom_shape_scale_xyz),
+        #                             "offset": list(bone.custom_shape_translation),
+        #                             "rotation": list(bone.custom_shape_rotation_euler)
+        #                         }
+        #                     }
+        #                 }
+
         with mode_set(mode="POSE"):
             for bone in armature.pose.bones:
-                if bone.custom_shape:
-                    data[str(bone.name)] = {
-                            "name": str(bone.name),
-                            "visible": not bone.bone.hide,
-                            "shape": bone.custom_shape.name if bone.custom_shape else "None",
-                            "color": bone.color.palette,
-                            "transforms": {
-                                "default": {
-                                    "scale": list(bone.custom_shape_scale_xyz),
-                                    "offset": list(bone.custom_shape_translation),
-                                    "rotation": list(bone.custom_shape_rotation_euler)
-                                }
-                            }
-                        }
+                if bone.custom_shape: #TEMPORARY
+                    bone_data = BoneData(bone)
+                    bone_name = str(bone.name)
+                    
+                    if bone.custom_shape:
+                        bone_data.copy_custom_shape_data(bone)
+
+                    data[bone_name] = bone_data.serialize()
         
         # Compute absolute path
         filename = context.scene.dev_props.dump_file_name

@@ -51,7 +51,7 @@ def register_props():
     # Visibility Props
     for group in bone_groups:
         prop_name = f"show_{group}".lower().replace(" ", "_")
-        print(prop_name)
+        # print(prop_name)
         setattr(bpy.types.Scene, prop_name, bpy.props.BoolProperty(
             name=group,
             description=f"Toggle visibility for {group}",

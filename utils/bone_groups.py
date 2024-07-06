@@ -15,3 +15,6 @@ data = {k.lower(): v for k, v in data.items()}
 data = {k: list(flatten_nested_list(v)) for k,v in data.items()}
 print(f'Loaded {len(data)} Bone Groups.')
 
+vanilla_bones = list(set(itertools.chain.from_iterable(data.values())))
+print(f'{len(vanilla_bones)} Vanilla Bones.') 
+
