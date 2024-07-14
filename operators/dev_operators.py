@@ -1,7 +1,7 @@
 import bpy, io, os, yaml # type: ignore
 import string, random, pathlib
 
-from ..utils.data_classes import BoneData, CustomShapeData, CustomShapeTransformData
+from ..utils.data_classes import BoneData, CustomShapeData, Variant
 from ..utils.config import data as config
 from ..utils.tools import mode_set, get_addon_absolute_path, import_shape_collection, lists_are_equal
 from ..utils.armature import RM_Armature
@@ -45,33 +45,20 @@ class ARMATURE_OT_ExportBonesToYAML(bpy.types.Operator):
             self.report({"ERROR"},"The active object is not an armature.")
             return {'CANCELLED'}
         
+        variant = "default"
+
         # Loop through all the bones and write changes of only bones that have a custom shape attached
         data = {};
-        # with mode_set(mode="POSE"):
-        #     for bone in armature.pose.bones:
-        #         if bone.custom_shape:
-        #             data[str(bone.name)] = {
-        #                     "name": str(bone.name),
-        #                     "visible": not bone.bone.hide,
-        #                     "shape": bone.custom_shape.name if bone.custom_shape else "None",
-        #                     "color": bone.color.palette,
-        #                     "transforms": {
-        #                         "default": {
-        #                             "scale": list(bone.custom_shape_scale_xyz),
-        #                             "offset": list(bone.custom_shape_translation),
-        #                             "rotation": list(bone.custom_shape_rotation_euler)
-        #                         }
-        #                     }
-        #                 }
-
         with mode_set(mode="POSE"):
             for bone in armature.pose.bones:
                 if bone.custom_shape: #TEMPORARY
-                    bone_data = BoneData(bone)
+                    bone_data: BoneData = BoneData.from_bone(bone)
                     bone_name = str(bone.name)
                     
                     if bone.custom_shape:
-                        bone_data.copy_custom_shape_data(bone)
+                        csd = CustomShapeData.from_bone(bone)
+                        variant_data = Variant(csd)
+                        bone_data.add_variant(variant=variant_data, variant_name=variant)
 
                     data[bone_name] = bone_data.serialize()
         
@@ -126,27 +113,22 @@ class ARMATURE_OT_ApplyYAMLCustomShapes(bpy.types.Operator):
         with io.open(file_path, 'r') as stream:
             data = yaml.safe_load(stream)
 
+        # Deserialize bone data
+        bones: list[BoneData] = list()
+        for obj in data:
+            bones.append(BoneData.deserialize(data[obj]))
+
         # Apply changes
         rma = RM_Armature(armature=armature)
-        for obj in data:
-            values = data[obj]
-            
-            transforms = values["transforms"]["default"]
-            if variant in values["transforms"].keys():
-                transforms.update(values["transforms"][variant])
-
-            scale = transforms["scale"]
-            offset = transforms["offset"]
-            rotation = transforms["rotation"]
-            # transforms = values["transforms"][variant]
-            # if transforms is None:
-            #     transforms = values["transforms"]["default"]
-            bone = rma.get_bone(obj)
+        for bone_data in bones:
+            v = bone_data.get_variant(variant_name=variant)
+            csd = v.custom_shape_data;
+            bone = rma.get_bone(bone_data.name)
             if bone is None: continue
-            bone.set_custom_shape(shapes.get(values["shape"]), scale=scale)
-            bone.set_custom_shape_offset(offset)
-            bone.set_custom_shape_rotation_euler(rotation)
-            bone.set_custom_shape_color(values["color"])
+            bone.set_custom_shape(shapes.get(csd.shape_name), scale=csd.scale)
+            bone.set_custom_shape_offset(csd.offset)
+            bone.set_custom_shape_rotation_euler(csd.rotation)
+            bone.set_custom_shape_color(csd.shape_color)
         
         # Show confirmation Popup
         bpy.ops.wm.show_message('INVOKE_DEFAULT', message="Custom Shapes Applied!")
@@ -180,50 +162,35 @@ class ARMATURE_OT_AppendVariantToYAML(bpy.types.Operator):
         with io.open(dump_file_path, 'r') as stream:
             data = yaml.safe_load(stream)
 
+        # Deserialize bone data
+        bones: dict[BoneData] = {}
+        for obj in data:
+            bone_data: BoneData = BoneData.deserialize(data[obj])
+            bones[bone_data.name] = bone_data
+
         # Get Variant key
         variant = context.scene.dev_props.variants
 
-        # Go through each bone check if it has a custom shape, and if it's already in the YAML file compare
-        # values. If the values are the same, move on. If the values differ add them as a variant
+        # Go through each bone and add or overrwide the saved bone data.
         with mode_set(mode="POSE"):
             for bone in armature.pose.bones:
-                if bone.custom_shape:
-                    scale_list = list(bone.custom_shape_scale_xyz)
-                    offset_list = list(bone.custom_shape_translation)
-                    rotation_list = list(bone.custom_shape_rotation_euler)
-                    diff = {}
-                    # if bone is set add variant or update
-                    if str(bone.name) in data.keys():
-                        saved_transforms = data[str(bone.name)]["transforms"]["default"]
-                        # Check scale
-                        if not lists_are_equal(saved_transforms["scale"], scale_list):
-                            diff["scale"] = scale_list
-                        # Check offset
-                        if not lists_are_equal(saved_transforms["offset"], offset_list):
-                            diff["offset"] = offset_list
-                        # Check rotation
-                        if not lists_are_equal(saved_transforms["rotation"], rotation_list):
-                            diff["rotation"] = rotation_list
+                if bone.custom_shape: #TEMPORARY
+                    bone_name = str(bone.name)
+                    bone_data: BoneData = bones[bone_name]
+                    
+                    if bone.custom_shape:
+                        csd = CustomShapeData.from_bone(bone)
+                        variant_data = Variant(csd)
+                        bone_data.add_variant(variant=variant_data, variant_name=variant,
+                                              overwrite=True)
 
-                        # Check if diff is not empty
-                        if diff:
-                            data[str(bone.name)]["transforms"][variant] = diff
-                    # if bone is not set, create it
-                    else:
-                        data[str(bone.name)] = {
-                            "name": str(bone.name),
-                            "visible": not bone.bone.hide,
-                            "shape": bone.custom_shape.name if bone.custom_shape else "None",
-                            "color": bone.color.palette,
-                            "transforms": {
-                                variant: {
-                                    "scale": scale_list,
-                                    "offset": offset_list,
-                                    "rotation": rotation_list
-                                }
-                            }
-                        }
+                    bones[bone_name] = bone_data
         
+        # Serialize the new data
+        data = {}
+        for bone_name, bone_data in bones.items():
+            data[bone_name] = bone_data.serialize()
+
         # Delete YAML file
         my_file.unlink()
 

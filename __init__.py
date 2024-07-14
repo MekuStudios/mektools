@@ -60,9 +60,9 @@ def register_props():
 
 def unregister_props():
     bpy.utils.unregister_class(VisibilityProperties)
-    del bpy.types.Scene.visibility_props
+    if bpy.types.Scene.visibility_props: del bpy.types.Scene.visibility_props
     bpy.utils.unregister_class(StepsProperties)
-    del bpy.types.Scene.steps_props
+    if bpy.types.Scene.steps_props: del bpy.types.Scene.steps_props
     
     # Visibility Props
     for group in bone_groups:
