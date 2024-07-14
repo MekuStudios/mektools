@@ -1,7 +1,7 @@
 import bpy, io, os, yaml # type: ignore
 import string, random, pathlib
 
-from ..utils.data_classes import BoneData, CustomShapeData, Variant
+from ..utils.data import BoneData, CustomShapeData, Variant
 from ..utils.config import data as config
 from ..utils.tools import mode_set, get_addon_absolute_path, import_shape_collection, lists_are_equal
 from ..utils.armature import RM_Armature
@@ -61,6 +61,7 @@ class ARMATURE_OT_ExportBonesToYAML(bpy.types.Operator):
                         bone_data.add_variant(variant=variant_data, variant_name=variant)
 
                     data[bone_name] = bone_data.serialize()
+                
         
         # Compute absolute path
         filename = context.scene.dev_props.dump_file_name
