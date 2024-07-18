@@ -1,7 +1,7 @@
 import bpy, io, os, yaml # type: ignore
 import string, random, pathlib
 
-from ..utils.data import BoneData, CustomShapeData, Variant, EditData
+from ..utils.data import BoneData, CustomShapeData, Variant, EditData, ConstraintData
 from ..utils.wrappers import MArmature, MPoseBone, MBone
 from ..utils.config import data as config
 from ..utils.tools import mode_set, get_addon_absolute_path, import_shape_collection, lists_are_equal
@@ -64,7 +64,12 @@ class ARMATURE_OT_ExportBonesToYAML(bpy.types.Operator):
                     edit_bone = MArmature(armature=armature).edit_bone(bone_name=bone_name)
                     edit_data = EditData.from_bone(edit_bone.bone)
 
-                variant_data = Variant(csd, edit_data)
+                # Grab Constraint Data
+                cd: list[ConstraintData] = list()
+                for constraint in bone.constraints:
+                    cd.append(ConstraintData.from_constraint(constraint))
+
+                variant_data = Variant(csd, edit_data, cd)
                 bone_data.add_variant(variant=variant_data, variant_name=variant)
                 data[bone_name] = bone_data.serialize()
         
@@ -167,6 +172,11 @@ class ARMATURE_OT_ApplyYAMLCustomShapes(bpy.types.Operator):
             if pbone and csd.shape_name: 
                 pbone.set_custom_shape(custom_shape_object=shapes.get(csd.shape_name), 
                                     custom_shape_data=csd)
+                
+            # Apply Constraints
+            if pbone and v.constraint_data:
+                for cd in v.constraint_data:
+                    cd.create(pbone.bone, armature)
 
         
         # Show confirmation Popup
@@ -226,7 +236,12 @@ class ARMATURE_OT_AppendVariantToYAML(bpy.types.Operator):
                     edit_bone = MArmature(armature=armature).edit_bone(bone_name=bone_name)
                     edit_data = EditData.from_bone(edit_bone.bone)
 
-                variant_data = Variant(csd, edit_data)
+                # Grab Constraint Data
+                cd: list[ConstraintData] = list()
+                for constraint in bone.constraints:
+                    cd.append(ConstraintData.from_constraint(constraint))
+
+                variant_data = Variant(csd, edit_data, cd)
                 bone_data.add_variant(variant=variant_data, variant_name=variant, overwrite=True)
                 bones[bone_name] = bone_data
 
