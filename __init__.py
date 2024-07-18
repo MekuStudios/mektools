@@ -1,6 +1,19 @@
+from .utils.config import data as config # make sure this loads first to ensure YAML is installed
+bl_info = {
+    "name": "MekTools",
+    "id_name": "mt",
+    "author": "G3ru1a",
+    "version": (0, 37, 0),
+    "blender": (4, 0, 0),
+    "location": "View3D > UI > Mektools",
+    "description": "Description Goes Here",
+    "warning": "warning",
+    "doc_url": "url",
+    "category": "MekTools 0.37a",
+}
+
 import bpy
 
-from .utils.config import data as config # make sure this loads first to ensure YAML is installed
 from .utils.bone_groups import data as bone_groups
 from .utils.tools import get_addon_absolute_path, all_operators_in_module
 
@@ -14,19 +27,6 @@ from .panels.inout_panel import VIEW3D_PT_InOutPanel
 from .operators import custom_shapes_operator
 from .operators import armature_control_operators
 from .operators import dev_operators
-
-bl_info = {
-    "name": config["name"],
-    "id_name": config["id_name"],
-    "author": config["author"],
-    "version": config["version"],
-    "blender": config["blender"],
-    "location": config["location"],
-    "description": config["description"],
-    "warning": "",
-    "doc_url": "",
-    "category": config["category"],
-}
 
 # Property to store the last active object
 # bpy.types.Scene.last_active_object = bpy.props.PointerProperty(type=bpy.types.Object)
