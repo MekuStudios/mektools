@@ -15,14 +15,16 @@ class MArmature:
         # Create the collection if it doesn't exist, then add the bone to it
         if collection_name not in self.data.collections:
             self.data.collections.new(collection_name)
-        self.data.collections[collection_name].assign(bone)
+        with mode_set(mode="POSE"):
+            self.data.collections[collection_name].assign(bone)
 
     def pose_bone(self, bone_name: str) -> MPoseBone:
-        if bone_name is None: return;
-        bone = self.armature.pose.bones.get(bone_name)
-        if bone is None:
-            return None
-        return MPoseBone(bone);
+        with mode_set(mode="POSE"):
+            if bone_name is None: return;
+            bone = self.armature.pose.bones.get(bone_name)
+            if bone is None:
+                return None
+            return MPoseBone(bone);
 
     def bone(self, bone_name: str) -> bpy.types.Bone:
         if bone_name is None: return;

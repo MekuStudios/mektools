@@ -1,7 +1,7 @@
 import bpy, io, os, yaml # type: ignore
 import string, random, pathlib
 
-from ..utils.data import BoneData, CustomShapeData, Variant
+from ..utils.data import BoneData, CustomShapeData, Variant, EditData
 from ..utils.wrappers import MArmature, MPoseBone, MBone
 from ..utils.config import data as config
 from ..utils.tools import mode_set, get_addon_absolute_path, import_shape_collection, lists_are_equal
@@ -51,17 +51,23 @@ class ARMATURE_OT_ExportBonesToYAML(bpy.types.Operator):
         data = {};
         with mode_set(mode="POSE"):
             for bone in armature.pose.bones:
-                if bone.custom_shape: #TEMPORARY
-                    bone_data: BoneData = BoneData.from_bone(bone)
-                    bone_name = str(bone.name)
-                    
-                    if bone.custom_shape:
-                        csd = CustomShapeData.from_bone(bone)
-                        variant_data = Variant(csd)
-                        bone_data.add_variant(variant=variant_data, variant_name=variant)
-
-                    data[bone_name] = bone_data.serialize()
+                bone_data: BoneData = BoneData.from_bone(bone)
+                bone_name = str(bone.name)
                 
+                # Grab Custom Shape Data if there is any
+                if bone.custom_shape:
+                    csd = CustomShapeData.from_bone(bone)
+                else: csd = None
+
+                # Grab Edit Data
+                with mode_set(mode="EDIT"):
+                    edit_bone = MArmature(armature=armature).edit_bone(bone_name=bone_name)
+                    edit_data = EditData.from_bone(edit_bone.bone)
+
+                variant_data = Variant(csd, edit_data)
+                bone_data.add_variant(variant=variant_data, variant_name=variant)
+                data[bone_name] = bone_data.serialize()
+        
         
         # Compute absolute path
         filename = context.scene.dev_props.dump_file_name
@@ -119,8 +125,31 @@ class ARMATURE_OT_ApplyYAMLCustomShapes(bpy.types.Operator):
         for obj in data:
             bones.append(BoneData.deserialize(data[obj]))
         
-        # Apply Changes
         marm = MArmature(armature)
+        with mode_set(mode="EDIT"):
+            # Create Missing Bones
+            for bone_data in bones: 
+                collections = bone_data.bone_collections
+                if config["created_bones_collection_name"] not in collections: 
+                    continue
+                # Update Existing Bones
+                existing_bones = {bone.name: bone for bone in armature.data.edit_bones}
+                
+                v = bone_data.get_variant(variant_name=variant)
+                v.edit_data.create(armature, bone_data.name, existing_bones)
+            
+            # Update Existing Bones
+            existing_bones = {bone.name: bone for bone in armature.data.edit_bones}
+            # Connect Added Bones
+            for bone_data in bones: 
+                collections = bone_data.bone_collections
+                if config["created_bones_collection_name"] not in collections: 
+                    continue
+                
+                v = bone_data.get_variant(variant_name=variant)
+                v.edit_data.connect(armature, bone_data.name, existing_bones)
+        
+        # Apply Changes
         for bone_data in bones:
             # Get Variant Data
             v = bone_data.get_variant(variant_name=variant)
@@ -135,9 +164,9 @@ class ARMATURE_OT_ApplyYAMLCustomShapes(bpy.types.Operator):
                 marm.add_bone_to_collection(bone, collection_name)
 
             # Apply Custom Shape
-            if pbone is None: continue
-            pbone.set_custom_shape(custom_shape_object=shapes.get(csd.shape_name), 
-                                  custom_shape_data=csd)
+            if pbone and csd.shape_name: 
+                pbone.set_custom_shape(custom_shape_object=shapes.get(csd.shape_name), 
+                                    custom_shape_data=csd)
 
         
         # Show confirmation Popup
@@ -180,22 +209,27 @@ class ARMATURE_OT_AppendVariantToYAML(bpy.types.Operator):
 
         # Get Variant key
         variant = context.scene.dev_props.variants
-
-        # Go through each bone and add or overrwide the saved bone data.
+        
+        data = {};
         with mode_set(mode="POSE"):
             for bone in armature.pose.bones:
-                if bone.custom_shape: #TEMPORARY
-                    bone_name = str(bone.name)
-                    bone_data: BoneData = bones[bone_name]
-                    
-                    if bone.custom_shape:
-                        csd = CustomShapeData.from_bone(bone)
-                        variant_data = Variant(csd)
-                        bone_data.add_variant(variant=variant_data, variant_name=variant,
-                                              overwrite=True)
+                bone_name = str(bone.name)
+                bone_data: BoneData = bones[bone_name]
+                
+                # Grab Custom Shape Data if there is any
+                if bone.custom_shape:
+                    csd = CustomShapeData.from_bone(bone)
+                else: csd = None
 
-                    bones[bone_name] = bone_data
-        
+                # Grab Edit Data
+                with mode_set(mode="EDIT"):
+                    edit_bone = MArmature(armature=armature).edit_bone(bone_name=bone_name)
+                    edit_data = EditData.from_bone(edit_bone.bone)
+
+                variant_data = Variant(csd, edit_data)
+                bone_data.add_variant(variant=variant_data, variant_name=variant, overwrite=True)
+                bones[bone_name] = bone_data
+
         # Serialize the new data
         data = {}
         for bone_name, bone_data in bones.items():

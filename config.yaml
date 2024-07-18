@@ -9,10 +9,10 @@ warning: ""
 doc_url: ""
 category: "MekTools 0.37a"
 custom_shapes_filename: "MekShapes.blend"
-created_bones_collection_name: "CREATED"
 yaml_files_folder: "dump"
 rig_master_files: "rig_configurations"
 production: false
+created_bones_collection_name: "CREATED"
 
 variants: 
   - ['default', "Default", "Default Values"]

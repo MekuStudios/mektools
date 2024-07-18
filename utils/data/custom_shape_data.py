@@ -62,7 +62,7 @@ class CustomShapeData(Serializable):
         new_attrs = {}
         
         # Get current values as a base, to ensure all attributes are included
-        for attr in ['shape_name', 'shape_color', 'scale', 'offset', 'rotation']:
+        for attr in attributes:
             new_attrs[attr] = getattr(self, attr)
 
         # Apply updates from 'other' where applicable
