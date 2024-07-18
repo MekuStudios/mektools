@@ -2,9 +2,9 @@ import bpy, io, os, yaml # type: ignore
 import string, random, pathlib
 
 from ..utils.data import BoneData, CustomShapeData, Variant
+from ..utils.wrappers import MArmature, MPoseBone, MBone
 from ..utils.config import data as config
 from ..utils.tools import mode_set, get_addon_absolute_path, import_shape_collection, lists_are_equal
-from ..utils.armature import RM_Armature
 
 class MyDumper(yaml.SafeDumper):
     pass
@@ -118,18 +118,27 @@ class ARMATURE_OT_ApplyYAMLCustomShapes(bpy.types.Operator):
         bones: list[BoneData] = list()
         for obj in data:
             bones.append(BoneData.deserialize(data[obj]))
-
-        # Apply changes
-        rma = RM_Armature(armature=armature)
+        
+        # Apply Changes
+        marm = MArmature(armature)
         for bone_data in bones:
+            # Get Variant Data
             v = bone_data.get_variant(variant_name=variant)
-            csd = v.custom_shape_data;
-            bone = rma.get_bone(bone_data.name)
-            if bone is None: continue
-            bone.set_custom_shape(shapes.get(csd.shape_name), scale=csd.scale)
-            bone.set_custom_shape_offset(csd.offset)
-            bone.set_custom_shape_rotation_euler(csd.rotation)
-            bone.set_custom_shape_color(csd.shape_color)
+            csd = v.custom_shape_data
+            
+            # Get Bone
+            bone: bpy.types.Bone = marm.bone(bone_name=bone_data.name)
+            pbone: MPoseBone = marm.pose_bone(bone_name=bone_data.name)
+
+            # Setup Bone's Collections
+            for collection_name in bone_data.bone_collections:
+                marm.add_bone_to_collection(bone, collection_name)
+
+            # Apply Custom Shape
+            if pbone is None: continue
+            pbone.set_custom_shape(custom_shape_object=shapes.get(csd.shape_name), 
+                                  custom_shape_data=csd)
+
         
         # Show confirmation Popup
         bpy.ops.wm.show_message('INVOKE_DEFAULT', message="Custom Shapes Applied!")

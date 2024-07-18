@@ -2,7 +2,7 @@ import bpy
 from ..utils.config import data as config
 from ..utils.bone_groups import data as bone_groups
 from ..utils.tools import mode_set
-from ..utils.armature import RM_Armature
+from ..utils.wrappers import MArmature, MPoseBone, MBone
 
 class ARMATURE_OT_ToggleVisibility(bpy.types.Operator):
     """Base class for toggling visibility of armature components"""
@@ -20,13 +20,13 @@ class ARMATURE_OT_ToggleVisibility(bpy.types.Operator):
             self.report({"ERROR"},"The active object is not an armature.")
             return {'CANCELLED'}
         # shapes = import_shape_collection(config.custom_shapes_filename)
-        rm_armature = RM_Armature(armature=armature)
+        marm = MArmature(armature=armature)
         visible: bool = False
         
         # print(bone_groups[self.bone_group_key])
         # print(self.visibility_prop)
         for bone in bone_groups[self.bone_group_key]:
-            bone = rm_armature.get_bone(bone);
+            bone: MPoseBone = marm.pose_bone(bone);
             if bone is None: continue
             visible = bone.toggle_visibility()
         

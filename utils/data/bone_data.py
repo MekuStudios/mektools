@@ -7,13 +7,15 @@ import bpy
 class BoneData(Serializable):
     name: str
     visible: bool
-    is_vanilla_bone: bool
+    bone_collections: list[str] | None
+    # is_vanilla_bone: bool
     variants: dict[str, Variant]
 
-    def __init__(self, name: str, visible: bool, is_vanilla: bool) -> Self:
+    def __init__(self, name: str, visible: bool, bone_collections: list[str] = None) -> Self:
         self.name = name
         self.visible = visible
-        self.is_vanilla_bone = is_vanilla
+        # self.is_vanilla_bone = is_vanilla
+        self.bone_collections = bone_collections
         self.variants = {}
 
     def get_variant(self, variant_name: str) -> Variant:
@@ -42,8 +44,10 @@ class BoneData(Serializable):
     def from_bone(bone: bpy.types.PoseBone = None) -> Self:
         name = bone.name
         visible = not bone.bone.hide
-        is_vanilla_bone = True if bone.name in vanilla_bones else False
-        return BoneData(name, visible, is_vanilla_bone)
+        # is_vanilla_bone = True if bone.name in vanilla_bones else False
+        bbone: bpy.types.Bone = bone.bone
+        bone_collections = [b.name for b in bbone.collections]
+        return BoneData(name, visible, bone_collections)
 
     def serialize(self) -> dict:
         # Serialize the variants, excluding any that are empty or None
@@ -53,7 +57,7 @@ class BoneData(Serializable):
         serialized_data = {
             "name": self.name,
             "visible": self.visible,
-            "is_vanilla_bone": self.is_vanilla_bone
+            "bone_collections": self.bone_collections
         }
 
         # Only add the 'variants' key if the serialized variants dictionary is not empty
@@ -63,7 +67,7 @@ class BoneData(Serializable):
         return serialized_data
 
     def deserialize(data) -> Self:
-        bone = BoneData(data["name"], data["visible"], data["is_vanilla_bone"])
+        bone = BoneData(data["name"], data["visible"], data["bone_collections"])
         for variant_name, variant_data in data["variants"].items():
             bone.variants[variant_name] = Variant.deserialize(variant_data)
         return bone
