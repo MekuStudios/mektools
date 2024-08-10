@@ -56,12 +56,11 @@ class Variant(Serializable):
         serialized_constraints = {cd.name: cd.serialize() for cd in self.constraint_data if self.constraint_data}
         if serialized_constraints == {}:
             serialized_constraints = None  # Explicitly handle empty list
-        # TODO: Better Constraint Serialize
         # Build the final dictionary only with non-None and non-empty items
         data = {
             "custom_shape": serialized_shape_data,
             "constraints": serialized_constraints,
-            "edit_data": self.edit_data.serialize()
+            "edit_data": self.edit_data.serialize() if self.edit_data else None
         }
 
         # Filter out None or inherently empty values from the dictionary

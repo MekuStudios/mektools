@@ -46,24 +46,24 @@ class ARMATURE_OT_ExportBonesToYAML(bpy.types.Operator):
             return {'CANCELLED'}
         
         variant = "default"
-
+        marm = MArmature(armature=armature)
+        marm.build_kdtree()
         # Loop through all the bones and write changes of only bones that have a custom shape attached
         data = {};
         with mode_set(mode="POSE"):
             for bone in armature.pose.bones:
                 bone_data: BoneData = BoneData.from_bone(bone)
                 bone_name = str(bone.name)
-                
+
                 # Grab Custom Shape Data if there is any
                 if bone.custom_shape:
                     csd = CustomShapeData.from_bone(bone)
                 else: csd = None
 
-                # Grab Edit Data
                 with mode_set(mode="EDIT"):
-                    edit_bone = MArmature(armature=armature).edit_bone(bone_name=bone_name)
-                    edit_data = EditData.from_bone(edit_bone.bone)
-
+                    edit_bone = marm.edit_bone(bone_name=bone_name)
+                    nearest_neighboor = marm.nearest_bone(edit_bone.bone)
+                    edit_data = EditData.from_bone(edit_bone.bone, nearest_neighboor)
                 # Grab Constraint Data
                 cd: list[ConstraintData] = list()
                 for constraint in bone.constraints:
@@ -134,8 +134,7 @@ class ARMATURE_OT_ApplyYAMLCustomShapes(bpy.types.Operator):
         with mode_set(mode="EDIT"):
             # Create Missing Bones
             for bone_data in bones: 
-                collections = bone_data.bone_collections
-                if config["created_bones_collection_name"] not in collections: 
+                if not bone_data.should_create: 
                     continue
                 # Update Existing Bones
                 existing_bones = {bone.name: bone for bone in armature.data.edit_bones}
@@ -147,8 +146,7 @@ class ARMATURE_OT_ApplyYAMLCustomShapes(bpy.types.Operator):
             existing_bones = {bone.name: bone for bone in armature.data.edit_bones}
             # Connect Added Bones
             for bone_data in bones: 
-                collections = bone_data.bone_collections
-                if config["created_bones_collection_name"] not in collections: 
+                if not bone_data.should_create: 
                     continue
                 
                 v = bone_data.get_variant(variant_name=variant)
@@ -165,16 +163,20 @@ class ARMATURE_OT_ApplyYAMLCustomShapes(bpy.types.Operator):
             pbone: MPoseBone = marm.pose_bone(bone_name=bone_data.name)
 
             # Setup Bone's Collections
-            for collection_name in bone_data.bone_collections:
-                marm.add_bone_to_collection(bone, collection_name)
+            if bone_data.bone_collections:
+                #armature.data because blender api is cringe, same as MArmature
+                bone_data.bone_collections.create_and_attach(armature.data, bone)
 
             # Apply Custom Shape
-            if pbone and csd.shape_name: 
+            if pbone and csd and csd.shape_name: 
                 pbone.set_custom_shape(custom_shape_object=shapes.get(csd.shape_name), 
                                     custom_shape_data=csd)
-                
+            # Apply Visibility
+            if pbone: 
+                pbone.set_visibility(bone_data.visible)
+
             # Apply Constraints
-            if pbone and v.constraint_data:
+            if pbone and v and v.constraint_data:
                 for cd in v.constraint_data:
                     cd.create(pbone.bone, armature)
 
@@ -219,7 +221,7 @@ class ARMATURE_OT_AppendVariantToYAML(bpy.types.Operator):
 
         # Get Variant key
         variant = context.scene.dev_props.variants
-        
+        marm = MArmature(armature=armature)
         data = {};
         with mode_set(mode="POSE"):
             for bone in armature.pose.bones:
@@ -231,10 +233,10 @@ class ARMATURE_OT_AppendVariantToYAML(bpy.types.Operator):
                     csd = CustomShapeData.from_bone(bone)
                 else: csd = None
 
-                # Grab Edit Data
                 with mode_set(mode="EDIT"):
-                    edit_bone = MArmature(armature=armature).edit_bone(bone_name=bone_name)
-                    edit_data = EditData.from_bone(edit_bone.bone)
+                    edit_bone = marm.edit_bone(bone_name=bone_name)
+                    nearest_neighboor = marm.nearest_bone(edit_bone.bone)
+                    edit_data = EditData.from_bone(edit_bone.bone, nearest_neighboor)
 
                 # Grab Constraint Data
                 cd: list[ConstraintData] = list()

@@ -73,3 +73,10 @@ def flatten_nested_list(xs):
             yield from flatten_nested_list(x)
         else:
             yield x
+
+def is_bone_created(bone_name: str, bone_list: list[str]) -> bool:
+    if bone_name in bone_list:
+        return False
+    if bone_name.startswith("j_ex_"):
+        return False
+    return True
