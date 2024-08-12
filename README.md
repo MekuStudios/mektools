@@ -41,5 +41,5 @@ MekTools is licensed under the GNU General Public License v3.0. See the [LICENSE
 
 ## Credits
 
-- **MekuMaki** - Original creator of MekTools and the MekRig.
-- **g3ru1a** - Primary developer of the new version.
+- [**MekuMaki**](https://github.com/MekuMaki) - Original creator of MekTools and the MekRig.
+- [**g3ru1a**](https://github.com/g3ru1a) - Primary developer of the new version.
