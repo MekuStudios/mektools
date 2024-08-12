@@ -5,7 +5,7 @@ from ..utils.tools import get_addon_absolute_path, import_shape_collection
 
 
 class ARMATURE_OT_CustomShapes(bpy.types.Operator):
-    bl_label = "Apply Custom Shapes"
+    bl_label = "Apply Rig"
     bl_idname = ".".join((config["id_name"], "custom_shapes"))
 
     def execute(self, context):
