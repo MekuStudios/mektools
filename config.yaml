@@ -12,6 +12,7 @@ custom_shapes_filename: "MekShapes.blend"
 yaml_files_folder: "dump"
 rig_master_files: "rig_configurations"
 production: false
+armature_constraint_name_placeholder: "character_armature"
 created_bones_collection_name: "CREATED"
 
 variants: 

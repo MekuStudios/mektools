@@ -67,7 +67,7 @@ class ARMATURE_OT_ExportBonesToYAML(bpy.types.Operator):
                 # Grab Constraint Data
                 cd: list[ConstraintData] = list()
                 for constraint in bone.constraints:
-                    cd.append(ConstraintData.from_constraint(constraint))
+                    cd.append(ConstraintData.from_constraint(constraint, armature))
 
                 variant_data = Variant(csd, edit_data, cd)
                 bone_data.add_variant(variant=variant_data, variant_name=variant)
@@ -177,6 +177,10 @@ class ARMATURE_OT_ApplyYAMLCustomShapes(bpy.types.Operator):
 
             # Apply Constraints
             if pbone and v and v.constraint_data:
+                # Remove all constraints from the bone to avoid duplication
+                for constraint in pbone.bone.constraints:
+                    pbone.bone.constraints.remove(constraint)
+                # Create Variant Constraints
                 for cd in v.constraint_data:
                     cd.create(pbone.bone, armature)
 
@@ -222,11 +226,16 @@ class ARMATURE_OT_AppendVariantToYAML(bpy.types.Operator):
         # Get Variant key
         variant = context.scene.dev_props.variants
         marm = MArmature(armature=armature)
+        marm.build_kdtree()
         data = {};
         with mode_set(mode="POSE"):
             for bone in armature.pose.bones:
                 bone_name = str(bone.name)
-                bone_data: BoneData = bones[bone_name]
+                # Check if the bone is already part of the rig file
+                if bone_name not in bones: 
+                    bone_data: BoneData = BoneData.from_bone(bone)
+                else: 
+                    bone_data: BoneData = bones[bone_name]
                 
                 # Grab Custom Shape Data if there is any
                 if bone.custom_shape:
@@ -241,10 +250,16 @@ class ARMATURE_OT_AppendVariantToYAML(bpy.types.Operator):
                 # Grab Constraint Data
                 cd: list[ConstraintData] = list()
                 for constraint in bone.constraints:
-                    cd.append(ConstraintData.from_constraint(constraint))
-
+                    cd.append(ConstraintData.from_constraint(constraint, armature))
+                
                 variant_data = Variant(csd, edit_data, cd)
                 bone_data.add_variant(variant=variant_data, variant_name=variant, overwrite=True)
+                
+                # If the bone was not in the file,
+                # add the data as Default variant aswell
+                if bone_name not in bones:
+                    bone_data.add_variant(variant=variant_data, variant_name="default", overwrite=True)
+                
                 bones[bone_name] = bone_data
 
         # Serialize the new data

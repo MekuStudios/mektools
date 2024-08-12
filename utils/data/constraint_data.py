@@ -1,6 +1,7 @@
 from typing import Self
 
 from .serializable import Serializable
+from ..config import data as config
 import bpy
 
 
@@ -13,13 +14,14 @@ class ConstraintData(Serializable):
         self.properties = properties
 
     def create(self, bone: bpy.types.PoseBone, armature: bpy.types.Object) -> None:
+        # Setup the constraints
         constraint: bpy.types.Constraint = bone.constraints.new(type=self.properties["type"])
         constraint.name = self.name
         for prop_name, prop_value in self.properties.items():
             if prop_name == "type": continue
             if isinstance(prop_value, str) and prop_value.startswith("obj."):
                 obj_name = prop_value.replace("obj.", "")
-                if obj_name == "n_root":
+                if obj_name == config["armature_constraint_name_placeholder"]:
                     value = armature
                 else:
                     value = bpy.data.objects.get(obj_name)
@@ -27,7 +29,7 @@ class ConstraintData(Serializable):
             else:
                 setattr(constraint, prop_name, prop_value)
 
-    def from_constraint(constraint: bpy.types.Constraint) -> Self:
+    def from_constraint(constraint: bpy.types.Constraint, armature: bpy.types.Object) -> Self:
         cname = constraint.name
         cprops = {}
         
@@ -42,7 +44,10 @@ class ConstraintData(Serializable):
             if isinstance(value, (float, int, str, bool)):
                 cprops[prop] = value
             if isinstance(value, (bpy.types.Object)):
-                cprops[prop] = "obj." + value.name
+                if value.name == armature.data.name:
+                    cprops[prop] = "obj." + config["armature_constraint_name_placeholder"]
+                else:
+                    cprops[prop] = "obj." + value.name
         cprops["type"] = constraint.type
         return ConstraintData(cname, cprops)
 
