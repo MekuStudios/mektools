@@ -20,7 +20,7 @@ class StepsProperties(bpy.types.PropertyGroup):
         items=yaml_files_enum_callback
     ) # type: ignore
     export_yaml_files: bpy.props.EnumProperty(
-        name="No YAML files found.",
+        name="Select a YAML File",
         description="Choose A YAML File",
         items=yaml_files_enum_callback
     ) # type: ignore

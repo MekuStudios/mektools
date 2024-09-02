@@ -1,7 +1,10 @@
 import bpy, io, os, yaml # type: ignore
 import pathlib
+from ..utils.data import BoneData
+from ..utils.wrappers import MArmature
 from ..utils.config import data as config
 from ..utils.tools import get_addon_absolute_path, import_shape_collection
+from ..utils.operator_functions import create_and_connect_bones, load_yaml_file, apply_bone_changes, sort_armature_bone_collections
 
 
 class ARMATURE_OT_CustomShapes(bpy.types.Operator):
@@ -16,49 +19,26 @@ class ARMATURE_OT_CustomShapes(bpy.types.Operator):
             self.report({"ERROR"},"The active object is not an armature.")
             return {'CANCELLED'}
         
-        # # Import blend file with custom shapes
-        # shapes = import_shape_collection(config["custom_shapes_filename"])
-        
-        # # Get absolute path of yaml file
-        # filename = context.scene.steps_props.yaml_files
-        # # filename = ".".join((filename, "yaml"))
-        # file_path = os.path.join(get_addon_absolute_path(), config["rig_master_files"], filename)
+        # Import blend file with custom shapes
+        shapes = import_shape_collection(config["custom_shapes_filename"])
+        # Get absolute path of yaml file
+        filename = context.scene.steps_props.yaml_files
+        # filename = ".".join((filename, "yaml"))
+        file_path = os.path.join(get_addon_absolute_path(), config["rig_master_files"], filename)
+        # Get Variant key
+        variant = context.scene.steps_props.variants
+        marm = MArmature(armature)
 
-        # # Get Variant key
-        # variant = context.scene.steps_props.variants
+        # Deserialize bone data
+        data = load_yaml_file(file_path)
+        bones: list[BoneData] = list()
+        for obj in data:
+            bones.append(BoneData.deserialize(data[obj]))
 
-        # # Mak sure the file exists
-        # my_file = pathlib.Path(file_path)
-        # if not my_file.is_file():
-        #     bpy.ops.wm.show_message('INVOKE_DEFAULT', message="Could not find YAML file.")
-        #     return {'CANCELLED'}
-
-        # # Load the file data
-        # with io.open(file_path, 'r') as stream:
-        #     data = yaml.safe_load(stream)
-
-        # # Apply changes
-        # rma = RM_Armature(armature=armature)
-        # for obj in data:
-        #     values = data[obj]
-            
-        #     # If there's a variant transform merge with the 
-        #     # default to add missing keys (rotation, scale, offset) if there are any
-        #     transforms = values["transforms"]["default"]
-        #     if variant in values["transforms"].keys():
-        #         transforms.update(values["transforms"][variant])
-
-        #     scale = transforms["scale"]
-        #     offset = transforms["offset"]
-        #     rotation = transforms["rotation"]
-
-        #     # Edit Bone
-        #     bone = rma.get_bone(obj)
-        #     bone.set_custom_shape(shapes.get(values["shape"]), scale=scale)
-        #     bone.set_custom_shape_offset(offset)
-        #     bone.set_custom_shape_rotation_euler(rotation)
-        #     bone.set_custom_shape_color(values["color"])
-        
-        # # Show confirmation Popup
-        # bpy.ops.wm.show_message('INVOKE_DEFAULT', message="Custom Shapes Applied!")
+        create_and_connect_bones(bones, armature, variant)
+        apply_bone_changes(bones, marm, armature, variant, shapes)
+        sort_armature_bone_collections(bones, armature)
+                    
+        # Show confirmation Popup
+        bpy.ops.wm.show_message('INVOKE_DEFAULT', message="Custom Shapes Applied!")
         return {'FINISHED'}

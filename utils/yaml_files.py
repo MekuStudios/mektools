@@ -26,12 +26,14 @@ def get_editable_files():
 
     files = get_files(config["yaml_files_folder"])
     YAMLCache.yaml_files = format_files(files)
-    print("YAML Cached updated: ", files)
+    # print("YAML Cached updated: ", files)
     return YAMLCache.yaml_files
 
 def get_master_files():
-    if YAMLCache.master_files: return YAMLCache.master_files
-    
+    if YAMLCache.master_files: 
+        if YAMLCache.check_for_changes(config["rig_master_files"]) is False:
+            return YAMLCache.master_files;
+
     files = get_files(config["rig_master_files"])
     YAMLCache.master_files = format_files(files)
 

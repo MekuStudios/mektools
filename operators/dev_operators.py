@@ -3,7 +3,7 @@ import bpy, io, os, yaml # type: ignore
 import string, random, pathlib
 
 from ..utils.data import BoneData, CustomShapeData, Variant, EditData, ConstraintData
-from ..utils.wrappers import MArmature, MPoseBone, MBone
+from ..utils.wrappers import MArmature
 from ..utils.config import data as config
 from ..utils.tools import mode_set, get_addon_absolute_path, import_shape_collection
 from ..utils.operator_functions import create_and_connect_bones, load_yaml_file, apply_bone_changes, sort_armature_bone_collections

@@ -31,7 +31,7 @@ class DevProperties(bpy.types.PropertyGroup):
         items=variants_enum_callback
     ) # type: ignore
     export_yaml_files: bpy.props.EnumProperty(
-        name="No YAML files found.",
+        name="Select a YAML File",
         description="Choose A YAML File",
         items=yaml_files_enum_callback
     ) # type: ignore
@@ -51,6 +51,8 @@ class VIEW3D_PT_DevPanel(bpy.types.Panel):
         layout.label(text="Import / Export", icon='TEMP')
         row = layout.row()
         op = row.operator(".".join((config["id_name"], "yaml_import")), text="Import YAML", icon="IMPORT")
+        op.dev_panel = True
+        op = row.operator(".".join((config["id_name"], "yaml_folder")), text="", icon="FILE_FOLDER")
         op.dev_panel = True
 
         row = layout.row()

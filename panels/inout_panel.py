@@ -15,7 +15,8 @@ class VIEW3D_PT_InOutPanel(bpy.types.Panel):
         layout.label(text="Import / Export", icon='TEMP')
         row = layout.row()
         row.operator(".".join((config["id_name"], "yaml_import")), text="Import YAML", icon="IMPORT")
-        
+        row.operator(".".join((config["id_name"], "yaml_folder")), text="", icon="FILE_FOLDER")
+
         row = layout.row()
         row.prop(props, "export_yaml_files", text="")
         row.operator(".".join((config["id_name"], "yaml_export")), text="Export YAML", icon="EXPORT")
