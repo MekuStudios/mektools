@@ -6,7 +6,7 @@ bl_info = {
     "version": (0, 37, 0),
     "blender": (4, 0, 0),
     "location": "View3D > UI > Mektools",
-    "description": "Description Goes Here",
+    "description": "Tools To Apply the MekRig",
     "warning": "warning",
     "doc_url": "url",
     "category": "MekTools 0.37a",
