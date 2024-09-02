@@ -42,7 +42,18 @@ class VIEW3D_PT_DevPanel(bpy.types.Panel):
         layout = self.layout
         props = context.scene.dev_props
 
+        # TODO: Add a way to export/import the rigfile
+        layout.label(text="Import / Export", icon='TEMP')
+        row = layout.row()
+        row.operator(".".join((config["id_name"], "yaml_import")), text="Import YAML", icon="IMPORT")
+        
+        row = layout.row()
+        row.prop(props, "yaml_files", text="")
+        row.operator(".".join((config["id_name"], "yaml_export")), text="Export YAML", icon="EXPORT")
+
+
         # Another section with a header
+        layout.separator()  # Adds visual separation between sections
         layout.label(text="New Configuration", icon='FILE_NEW')
 
         layout.prop(props, "dump_file_name", text="Filename")
@@ -56,13 +67,13 @@ class VIEW3D_PT_DevPanel(bpy.types.Panel):
 
         row = layout.row()
         row.alignment = 'CENTER'
-        row.label(text="Select a YAML File")
-        layout.prop(props, "yaml_files", text="")
+        # row.label(text="Select a YAML File")
+        layout.prop(props, "yaml_files", text="YAML")
 
         row = layout.row()
         row.alignment = 'CENTER'
-        row.label(text="Select a Variant")
-        layout.prop(props, "variants", text="")
+        # row.label(text="Select a Variant")
+        layout.prop(props, "variants", text="Variant")
 
         row = layout.row()
         row.operator(".".join((config["id_name"], "append_variant_to_yaml")), text="Update Variant")

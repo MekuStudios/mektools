@@ -1,10 +1,12 @@
+import time
 import bpy, io, os, yaml # type: ignore
 import string, random, pathlib
 
 from ..utils.data import BoneData, CustomShapeData, Variant, EditData, ConstraintData
 from ..utils.wrappers import MArmature, MPoseBone, MBone
 from ..utils.config import data as config
-from ..utils.tools import mode_set, get_addon_absolute_path, import_shape_collection, lists_are_equal
+from ..utils.tools import mode_set, get_addon_absolute_path, import_shape_collection
+from ..utils.operator_functions import create_and_connect_bones, load_yaml_file, apply_bone_changes, sort_armature_bone_collections
 
 class MyDumper(yaml.SafeDumper):
     pass
@@ -104,87 +106,27 @@ class ARMATURE_OT_ApplyYAMLCustomShapes(bpy.types.Operator):
         if not armature or armature.type != 'ARMATURE':
             self.report({"ERROR"},"The active object is not an armature.")
             return {'CANCELLED'}
+        
         # Import blend file with custom shapes
         shapes = import_shape_collection(config["custom_shapes_filename"])
-        
         # Get absolute path of yaml file
         filename = context.scene.dev_props.preview_yaml_files
         # filename = ".".join((filename, "yaml"))
         file_path = os.path.join(get_addon_absolute_path(), config["yaml_files_folder"], filename)
-
         # Get Variant key
         variant = context.scene.dev_props.preview_variants
-
-        # Mak sure the file exists
-        my_file = pathlib.Path(file_path)
-        if not my_file.is_file():
-            bpy.ops.wm.show_message('INVOKE_DEFAULT', message="Could not find YAML file.")
-            return {'CANCELLED'}
-
-        # Load the file data
-        with io.open(file_path, 'r') as stream:
-            data = yaml.safe_load(stream)
+        marm = MArmature(armature)
 
         # Deserialize bone data
+        data = load_yaml_file(file_path)
         bones: list[BoneData] = list()
         for obj in data:
             bones.append(BoneData.deserialize(data[obj]))
-        
-        marm = MArmature(armature)
-        with mode_set(mode="EDIT"):
-            # Create Missing Bones
-            for bone_data in bones: 
-                if not bone_data.should_create: 
-                    continue
-                # Update Existing Bones
-                existing_bones = {bone.name: bone for bone in armature.data.edit_bones}
-                
-                v = bone_data.get_variant(variant_name=variant)
-                v.edit_data.create(armature, bone_data.name, existing_bones)
-            
-            # Update Existing Bones
-            existing_bones = {bone.name: bone for bone in armature.data.edit_bones}
-            # Connect Added Bones
-            for bone_data in bones: 
-                if not bone_data.should_create: 
-                    continue
-                
-                v = bone_data.get_variant(variant_name=variant)
-                v.edit_data.connect(armature, bone_data.name, existing_bones)
-        
-        # Apply Changes
-        for bone_data in bones:
-            # Get Variant Data
-            v = bone_data.get_variant(variant_name=variant)
-            csd = v.custom_shape_data
-            
-            # Get Bone
-            bone: bpy.types.Bone = marm.bone(bone_name=bone_data.name)
-            pbone: MPoseBone = marm.pose_bone(bone_name=bone_data.name)
 
-            # Setup Bone's Collections
-            if bone_data.bone_collections:
-                #armature.data because blender api is cringe, same as MArmature
-                bone_data.bone_collections.create_and_attach(armature.data, bone)
-
-            # Apply Custom Shape
-            if pbone and csd and csd.shape_name: 
-                pbone.set_custom_shape(custom_shape_object=shapes.get(csd.shape_name), 
-                                    custom_shape_data=csd)
-            # Apply Visibility
-            if pbone: 
-                pbone.set_visibility(bone_data.visible)
-
-            # Apply Constraints
-            if pbone and v and v.constraint_data:
-                # Remove all constraints from the bone to avoid duplication
-                for constraint in pbone.bone.constraints:
-                    pbone.bone.constraints.remove(constraint)
-                # Create Variant Constraints
-                for cd in v.constraint_data:
-                    cd.create(pbone.bone, armature)
-
-        
+        create_and_connect_bones(bones, armature, variant)
+        apply_bone_changes(bones, marm, armature, variant, shapes)
+        sort_armature_bone_collections(bones, armature)
+                    
         # Show confirmation Popup
         bpy.ops.wm.show_message('INVOKE_DEFAULT', message="Custom Shapes Applied!")
         return {'FINISHED'}
@@ -275,4 +217,7 @@ class ARMATURE_OT_AppendVariantToYAML(bpy.types.Operator):
             yaml.dump(data, outfile, Dumper=MyDumper, default_flow_style=False, allow_unicode=True)
         bpy.ops.wm.show_message('INVOKE_DEFAULT', message="Updated YAML File!")
         return {'FINISHED'}
+
+
+#TODO: De-Duplicate this code and the one for Applying YAML files
 

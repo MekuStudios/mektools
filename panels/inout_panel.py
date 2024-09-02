@@ -10,4 +10,12 @@ class VIEW3D_PT_InOutPanel(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        #
+        props = context.scene.steps_props
+        
+        layout.label(text="Import / Export", icon='TEMP')
+        row = layout.row()
+        row.operator(".".join((config["id_name"], "yaml_import")), text="Import YAML", icon="IMPORT")
+        
+        row = layout.row()
+        row.prop(props, "yaml_files", text="")
+        row.operator(".".join((config["id_name"], "yaml_export")), text="Export YAML", icon="EXPORT")

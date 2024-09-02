@@ -17,6 +17,12 @@ class CollectionData(Serializable):
             collections.append(CollectionData.form_collection_dict(b))
         return CollectionData(collections)
     
+    def sort_collections(self, armature: bpy.types.Armature) -> None:
+        for col in self.collections:
+            collection_name = col["name"];
+            index = col["index"] if "index" in col else -1
+            if index is not -1: armature.collections_all[collection_name].child_number = index
+    
     def create_and_attach(self, armature: bpy.types.Armature, bone: bpy.types.Bone) -> None:
         CollectionData.create_collections(self.collections, armature)
         for col in self.collections:
@@ -29,6 +35,7 @@ class CollectionData(Serializable):
         for collection in collections:
             name = collection["name"]
             is_visible = collection["is_visible"]
+            index = collection["index"] if "index" in collection else -1
             parent_data = collection.get("parent", None)
 
             if parent_data:
@@ -40,19 +47,21 @@ class CollectionData(Serializable):
             else:
                 parent_collection = None
 
-            col = CollectionData.create_collection(armature, name, is_visible, parent_collection)
+            col = CollectionData.create_collection(armature, name, is_visible, index, parent_collection)
         
         return col
 
-    def create_collection(armature: bpy.types.Armature, collection_name: str, is_visible: bool,
+    def create_collection(armature: bpy.types.Armature, collection_name: str, is_visible: bool, index: int,
                         parent_collection: bpy.types.BoneCollection | None = None):
         # Check if collection already exists
+        # TODO: Keep collection order somwhow
         if collection_name in armature.collections_all:
             collection: bpy.types.BoneCollection = armature.collections_all[collection_name]
         else:
             collection: bpy.types.BoneCollection = armature.collections.new(collection_name)
-        
+
         collection.is_visible = is_visible
+        if index is not -1: collection.child_number = index
 
         if parent_collection and parent_collection.name in armature.collections_all:
             parent_coll: bpy.types.BoneCollection = armature.collections_all[parent_collection.name]
@@ -65,11 +74,13 @@ class CollectionData(Serializable):
             return {
                 "name": col.name,
                 "is_visible": col.is_visible,
+                "index": col.child_number,
                 "parent": CollectionData.form_collection_dict(col.parent)
             }
         else: 
             return {
                 "name": col.name,
+                "index": col.child_number,
                 "is_visible": col.is_visible
             }
 

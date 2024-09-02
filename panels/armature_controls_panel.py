@@ -27,6 +27,7 @@ class VIEW3D_PT_ControlsPanel(bpy.types.Panel):
         row = layout.row()
         row.operator(".".join((config["id_name"], "reset_pose")), text="Reset Pose", icon='ARMATURE_DATA')
 
+
         # Another section with a header
         layout.label(text="Show/Hide Bones", icon='HIDE_OFF')
 

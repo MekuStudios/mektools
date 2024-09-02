@@ -27,6 +27,7 @@ from .panels.inout_panel import VIEW3D_PT_InOutPanel
 from .operators import custom_shapes_operator
 from .operators import armature_control_operators
 from .operators import dev_operators
+from .operators import util_operators
 
 # Property to store the last active object
 # bpy.types.Scene.last_active_object = bpy.props.PointerProperty(type=bpy.types.Object)
@@ -92,6 +93,7 @@ def register():
     ## Operators
     bpy.utils.register_class(custom_shapes_operator.ARMATURE_OT_CustomShapes)
     all_operators_in_module(armature_control_operators, register=True)
+    all_operators_in_module(util_operators, register=True)
 
 
 def unregister():
@@ -118,6 +120,7 @@ def unregister():
     ## Operators
     bpy.utils.unregister_class(custom_shapes_operator.ARMATURE_OT_CustomShapes)
     all_operators_in_module(armature_control_operators, register=False)
+    all_operators_in_module(util_operators, register=False)
 
     
 

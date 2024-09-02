@@ -28,6 +28,11 @@ class ConstraintData(Serializable):
                 setattr(constraint, prop_name, value)
             else:
                 setattr(constraint, prop_name, prop_value)
+        # NOTE: This isn't a great fix, but the bug is stupid so ohwell
+        if bone.name == "IK_Leg_Pole.R" and "Child Of" in constraint.name:
+            constraint.set_inverse_pending = True
+        if bone.name == "IK_Leg_Pole.L" and "Child Of" in constraint.name:
+            constraint.set_inverse_pending = True
 
     def from_constraint(constraint: bpy.types.Constraint, armature: bpy.types.Object) -> Self:
         cname = constraint.name
