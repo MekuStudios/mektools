@@ -19,6 +19,11 @@ class StepsProperties(bpy.types.PropertyGroup):
         description="Choose A YAML File",
         items=yaml_files_enum_callback
     ) # type: ignore
+    export_yaml_files: bpy.props.EnumProperty(
+        name="No YAML files found.",
+        description="Choose A YAML File",
+        items=yaml_files_enum_callback
+    ) # type: ignore
 
 class VIEW3D_PT_StepsPanel(bpy.types.Panel):
     bl_label = "Armatures Setup"

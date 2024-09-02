@@ -1,48 +1,74 @@
 import bpy, yaml # type: ignore
+from bpy_extras.io_utils import ExportHelper, ImportHelper
 from ..utils.config import data as config
-
+from ..utils.tools import get_addon_absolute_path
+import os
+import shutil
 
 
 #TODO: Finish this import Export logic
 
-class ExportYAML(bpy.types.Operator):
+class ExportYAML(bpy.types.Operator, ExportHelper):
     """Export to YAML"""
     bl_idname = ".".join((config["id_name"], "yaml_export"))
     bl_label = "Export YAML"
     bl_options = {'REGISTER'}
 
-    # Define properties
-    filepath: bpy.props.StringProperty(subtype="FILE_PATH") # type: ignore
+    dev_panel: bpy.props.BoolProperty(default=False) # type: ignore
 
-    # This method is called when the operator is executed to invoke a file selector
-    def invoke(self, context, event):
-        context.window_manager.fileselect_add(self)
-        return {'RUNNING_MODAL'}
+    # ExportHelper mix-in class uses this.
+    filename_ext = ".yaml"
+
+    filter_glob:  bpy.props.StringProperty(
+        default="*.yaml",
+        options={'HIDDEN'},
+        maxlen=255,  # Max internal buffer length, longer would be clamped.
+    )# type: ignore
 
     def execute(self, context):
         # Use the selected file path to save the YAML file
-        data = {'example': 'data'}  # Replace with your actual data logic
         if not self.filepath.endswith('.yaml'):
             self.filepath += '.yaml'
-        with open(self.filepath, 'w') as file:
-            yaml.dump(data, file)
+
+        # Get absolute path of yaml file
+        if self.dev_panel:
+            yaml_filename = context.scene.dev_props.export_yaml_files
+            yaml_file_path = os.path.join(get_addon_absolute_path(), config["yaml_files_folder"], yaml_filename)
+        else:
+            yaml_filename = context.scene.steps_props.export_yaml_files
+            yaml_file_path = os.path.join(get_addon_absolute_path(), config["rig_master_files"], yaml_filename)
+
+        shutil.copy2(yaml_file_path, self.filepath)
         return {'FINISHED'}
 
-class ImportYAML(bpy.types.Operator):
+class ImportYAML(bpy.types.Operator, ImportHelper):
     """Import from YAML"""
     bl_idname = ".".join((config["id_name"], "yaml_import"))
     bl_label = "Import YAML"
-    bl_options = {'REGISTER'}
 
-    filepath: bpy.props.StringProperty(subtype="FILE_PATH") # type: ignore
+    dev_panel: bpy.props.BoolProperty(default=False, options={'HIDDEN'}) # type: ignore
 
-    def invoke(self, context, event):
-        context.window_manager.fileselect_add(self)
-        return {'RUNNING_MODAL'}
+    # ExportHelper mix-in class uses this.
+    filename_ext = ".yaml"
+
+    filter_glob:  bpy.props.StringProperty(
+        default="*.yaml",
+        options={'HIDDEN'},
+        maxlen=255,  # Max internal buffer length, longer would be clamped.
+    )# type: ignore
 
     def execute(self, context):
-        # Use the selected file path to load the YAML file
-        with open(self.filepath, 'r') as file:
-            data = yaml.safe_load(file)
-        print(data)  # Replace with your actual processing logic
+        # Use the selected file path to save the YAML file
+        if not self.filepath.endswith('.yaml'):
+            self.filepath += '.yaml'
+
+        # Get absolute path of yaml file
+        if self.dev_panel:
+            yaml_filename = os.path.basename(self.filepath)
+            yaml_file_path = os.path.join(get_addon_absolute_path(), config["yaml_files_folder"], yaml_filename)
+        else:
+            yaml_filename = os.path.basename(self.filepath)
+            yaml_file_path = os.path.join(get_addon_absolute_path(), config["rig_master_files"], yaml_filename)
+
+        shutil.copy2(self.filepath, yaml_file_path)
         return {'FINISHED'}

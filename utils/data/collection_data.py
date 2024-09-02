@@ -54,7 +54,6 @@ class CollectionData(Serializable):
     def create_collection(armature: bpy.types.Armature, collection_name: str, is_visible: bool, index: int,
                         parent_collection: bpy.types.BoneCollection | None = None):
         # Check if collection already exists
-        # TODO: Keep collection order somwhow
         if collection_name in armature.collections_all:
             collection: bpy.types.BoneCollection = armature.collections_all[collection_name]
         else:

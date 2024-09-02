@@ -30,6 +30,11 @@ class DevProperties(bpy.types.PropertyGroup):
         description="Choose A Variant",
         items=variants_enum_callback
     ) # type: ignore
+    export_yaml_files: bpy.props.EnumProperty(
+        name="No YAML files found.",
+        description="Choose A YAML File",
+        items=yaml_files_enum_callback
+    ) # type: ignore
 
 class VIEW3D_PT_DevPanel(bpy.types.Panel):
     bl_label = "Development"
@@ -45,12 +50,13 @@ class VIEW3D_PT_DevPanel(bpy.types.Panel):
         # TODO: Add a way to export/import the rigfile
         layout.label(text="Import / Export", icon='TEMP')
         row = layout.row()
-        row.operator(".".join((config["id_name"], "yaml_import")), text="Import YAML", icon="IMPORT")
-        
-        row = layout.row()
-        row.prop(props, "yaml_files", text="")
-        row.operator(".".join((config["id_name"], "yaml_export")), text="Export YAML", icon="EXPORT")
+        op = row.operator(".".join((config["id_name"], "yaml_import")), text="Import YAML", icon="IMPORT")
+        op.dev_panel = True
 
+        row = layout.row()
+        row.prop(props, "export_yaml_files", text="")
+        op = row.operator(".".join((config["id_name"], "yaml_export")), text="Export YAML", icon="EXPORT")
+        op.dev_panel = True
 
         # Another section with a header
         layout.separator()  # Adds visual separation between sections
