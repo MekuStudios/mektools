@@ -38,11 +38,15 @@ class BoneData(Serializable):
         if variant_name in self.variants and overwrite == False:
             raise ValueError("Variant Name already in use.")
         
-        # Grab Default Variant
-        default_variant = self.variants["default"]
-        # Keep only different values and add variant to dict
-        variant.keep_differences(default_variant)
-        self.variants[variant_name] = variant
+        
+        if "default" not in self.variants:
+            self.variants[variant_name] = variant
+        else:
+            # Grab Default Variant
+            default_variant = self.variants["default"]
+            # Keep only different values and add variant to dict
+            variant.keep_differences(default_variant)
+            self.variants[variant_name] = variant
 
     def from_bone(bone: bpy.types.PoseBone = None) -> Self:
         name = bone.name

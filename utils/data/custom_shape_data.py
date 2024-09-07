@@ -19,7 +19,9 @@ class CustomShapeData(Serializable):
 
     def from_bone(bone: bpy.types.PoseBone) -> Self:
         shape_name=bone.custom_shape.name if bone.custom_shape else "None"
-        shape_color=bone.color.palette
+        
+        # shape_color=bone.color.palette
+        shape_color=bone.bone.color.palette
         if bone.custom_shape:
             scale=list(bone.custom_shape_scale_xyz),
             offset=list(bone.custom_shape_translation),

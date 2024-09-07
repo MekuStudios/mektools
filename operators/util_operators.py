@@ -114,7 +114,7 @@ class OpenYAMLFolder(bpy.types.Operator):
     dev_panel: bpy.props.BoolProperty(default=False, options={'HIDDEN'}) # type: ignore
 
     def execute(self, context):
-
+        print(self.dev_panel)
         # Get absolute path of yaml file
         if self.dev_panel:
             yaml_file_path = os.path.join(get_addon_absolute_path(), config["yaml_files_folder"])

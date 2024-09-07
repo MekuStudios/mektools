@@ -3,13 +3,13 @@ bl_info = {
     "name": "MekTools",
     "id_name": "mt",
     "author": "G3ru1a",
-    "version": (0, 37, 0),
+    "version": (0, 37, 93),
     "blender": (4, 0, 0),
     "location": "View3D > UI > Mektools",
     "description": "Tools To Apply the MekRig",
     "warning": "warning",
     "doc_url": "url",
-    "category": "MekTools 0.37a",
+    "category": "MekTools 0.37.82",
 }
 
 import bpy

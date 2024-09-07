@@ -49,10 +49,11 @@ class ConstraintData(Serializable):
             if isinstance(value, (float, int, str, bool)):
                 cprops[prop] = value
             if isinstance(value, (bpy.types.Object)):
-                if value.name == armature.data.name:
-                    cprops[prop] = "obj." + config["armature_constraint_name_placeholder"]
-                else:
-                    cprops[prop] = "obj." + value.name
+                # if value.name == armature.data.name:
+                #     cprops[prop] = "obj." + config["armature_constraint_name_placeholder"]
+                # else:
+                #     cprops[prop] = "obj." + value.name
+                cprops[prop] = "obj." + config["armature_constraint_name_placeholder"]
         cprops["type"] = constraint.type
         return ConstraintData(cname, cprops)
 
