@@ -1,7 +1,7 @@
 schema_version = "1.0.0"
 
 id = "mt"
-version = "0.37.0"
+version = "0.37.93"
 name = "MekTools"
 tagline = "Tools To Apply the MekRig"
 maintainer = "G3ru1a <egidiufarcas@maze.ws>"

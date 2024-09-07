@@ -1,16 +1,21 @@
+from typing import Tuple, List
 import bpy
 import mathutils
+from mathutils import Vector
 from ..tools import mode_set
 from .bones import MPoseBone, MEditBone, MBone
 from mathutils import kdtree
 from mathutils.kdtree import KDTree
-from ..bone_groups import vanilla_bones
+from ..bone_groups import reference_bones
 from ..tools import is_bone_created
+import math
+
 
 class MArmature:
     armature: bpy.types.Object = None
     data: bpy.types.Armature = None
-    kdtree: KDTree = None
+    kdtree_head: KDTree = None
+    kdtree_tail: KDTree = None
 
     def __init__(self, armature: bpy.types.Object) -> None:
         self.armature = armature
@@ -45,32 +50,57 @@ class MArmature:
             return None
         return MEditBone(bone);
 
-    def build_kdtree(self):
+    def build_kdtrees(self):
         size = len(self.data.bones)  # Number of bones
         kd_tree = kdtree.KDTree(size)
 
         with mode_set(mode="EDIT"):
             for i, bone in enumerate(self.data.edit_bones):
                 # Ignore if the bone is not vanilla
-                if is_bone_created(bone.name, vanilla_bones): continue
+                if bone.name not in reference_bones: continue
                 kd_tree.insert(bone.head, i)  # Insert bone head position and index
 
         kd_tree.balance()  # Balance the tree for faster queries
-        self.kdtree = kd_tree
+        self.kdtree_head = kd_tree
+        kd_tree = kdtree.KDTree(size)
+
+        with mode_set(mode="EDIT"):
+            for i, bone in enumerate(self.data.edit_bones):
+                # Ignore if the bone is not a reference bone
+                if bone.name not in reference_bones: continue
+                kd_tree.insert(bone.tail, i)  # Insert bone tail position and index
+
+        kd_tree.balance()  # Balance the tree for faster queries
+        self.kdtree_tail = kd_tree
     
-    def nearest_bone(self, bone: bpy.types.EditBone) -> bpy.types.EditBone:
-        if not self.kdtree:
+    def nearest_bone_dict(self, bone_position, bone_name) -> dict:
+        nearest_head = self.nearest_bone(self.kdtree_head, bone_position, bone_name)
+        nearest_tail = self.nearest_bone(self.kdtree_tail, bone_position, bone_name)
+
+        head_dist = math.dist(bone_position, nearest_head.head)
+        tail_dist = math.dist(bone_position, nearest_tail.tail)
+
+        if tail_dist < head_dist:
+            return {"bone": nearest_tail, "head": False}
+        else:
+            return {"bone": nearest_head, "head": True}
+        
+    
+    def nearest_bone_tail(self, bone: bpy.types.EditBone) -> bpy.types.EditBone:
+        return self.nearest_bone(self.kdtree_tail, bone.tail, bone.name)
+
+    def nearest_bone(self, kdtree: KDTree, bone_pos: List[float] | Tuple[float, float, float] | Vector, bone_name: str):
+        if not kdtree:
             raise ValueError("KDTree has not been built but an access attempt has been made.")
-        ref_bone = bone
         with mode_set(mode="EDIT"):
             # Find the nearest point (bone head) to the reference bone head
-            location, index, distance = self.kdtree.find(ref_bone.head)
+            location, index, distance = kdtree.find(bone_pos)
 
             # Use the index to get the nearest bone
             nearest_bone = self.data.edit_bones[index]
-            if nearest_bone.name == ref_bone.name:
+            if nearest_bone.name == bone_name:
                 # If the nearest bone is the reference bone itself, find the second nearest
-                location, index, distance = self.kdtree.find_n(ref_bone.head, 2)[-1]
+                location, index, distance = kdtree.find_n(bone_pos, 2)[-1]
                 nearest_bone = self.data.edit_bones[index]
 
             return nearest_bone

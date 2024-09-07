@@ -49,7 +49,7 @@ class ARMATURE_OT_ExportBonesToYAML(bpy.types.Operator):
         
         variant = "default"
         marm = MArmature(armature=armature)
-        marm.build_kdtree()
+        marm.build_kdtrees()
         # Loop through all the bones and write changes of only bones that have a custom shape attached
         data = {};
         with mode_set(mode="POSE"):
@@ -64,8 +64,9 @@ class ARMATURE_OT_ExportBonesToYAML(bpy.types.Operator):
 
                 with mode_set(mode="EDIT"):
                     edit_bone = marm.edit_bone(bone_name=bone_name)
-                    nearest_neighboor = marm.nearest_bone(edit_bone.bone)
-                    edit_data = EditData.from_bone(edit_bone.bone, nearest_neighboor)
+                    nn_head = marm.nearest_bone_dict(edit_bone.bone.head, edit_bone.bone.name)
+                    nn_tail = marm.nearest_bone_dict(edit_bone.bone.tail, edit_bone.bone.name)
+                    edit_data = EditData.from_bone(edit_bone.bone, nn_head, nn_tail)
                 # Grab Constraint Data
                 cd: list[ConstraintData] = list()
                 for constraint in bone.constraints:
@@ -168,7 +169,7 @@ class ARMATURE_OT_AppendVariantToYAML(bpy.types.Operator):
         # Get Variant key
         variant = context.scene.dev_props.variants
         marm = MArmature(armature=armature)
-        marm.build_kdtree()
+        marm.build_kdtrees()
         data = {};
         with mode_set(mode="POSE"):
             for bone in armature.pose.bones:
@@ -186,8 +187,9 @@ class ARMATURE_OT_AppendVariantToYAML(bpy.types.Operator):
 
                 with mode_set(mode="EDIT"):
                     edit_bone = marm.edit_bone(bone_name=bone_name)
-                    nearest_neighboor = marm.nearest_bone(edit_bone.bone)
-                    edit_data = EditData.from_bone(edit_bone.bone, nearest_neighboor)
+                    nn_head = marm.nearest_bone_dict(edit_bone.bone.head, edit_bone.bone.name)
+                    nn_tail = marm.nearest_bone_dict(edit_bone.bone.tail, edit_bone.bone.name)
+                    edit_data = EditData.from_bone(edit_bone.bone, nn_head, nn_tail)
 
                 # Grab Constraint Data
                 cd: list[ConstraintData] = list()
