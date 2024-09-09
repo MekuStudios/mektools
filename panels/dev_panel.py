@@ -52,7 +52,7 @@ class VIEW3D_PT_DevPanel(bpy.types.Panel):
         layout = self.layout
         props = context.scene.dev_props
 
-        # TODO: Add a way to export/import the rigfile-- ((wait you did this already right? - Meku))
+        # TODO: Add a way to export/import the rigfile-- ((wait you did this already right? -))
         layout.label(text="Import / Export", icon='TEMP')
         row = layout.row()
         op = row.operator(".".join((config["id_name"], "yaml_import")), text="Import YAML", icon="IMPORT")

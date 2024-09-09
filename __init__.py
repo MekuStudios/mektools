@@ -16,6 +16,7 @@ import bpy
 
 from .utils.bone_groups import data as bone_groups
 from .utils.tools import get_addon_absolute_path, all_operators_in_module
+from .preferences import addon_preferences
 
 from .panels import armature_controls_panel
 from .panels.armature_controls_panel import VisibilityProperties
@@ -42,22 +43,6 @@ from .operators import util_operators
 # def on_armature_selected(armature):
 #     # Your custom code to run when an armature is selected
 #     print(f"Selected armature: {armature.name}")
-
-# Addon Preferences class
-class MyAddonPreferences(bpy.types.AddonPreferences):
-    bl_idname = __name__
-
-    # Add a toggle property to control the "Development" panel visibility
-    enable_development_panel: bpy.props.BoolProperty(
-        name="Enable Development Panel",
-        description="Show or hide the Development panel in the N-panel",
-        default=False
-    )
-
-    def draw(self, context):
-        layout = self.layout
-        layout.prop(self, "enable_development_panel")
-
 
 def register_props():
     bpy.utils.register_class(VisibilityProperties)
