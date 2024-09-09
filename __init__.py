@@ -1,22 +1,22 @@
 from .utils.config import data as config # make sure this loads first to ensure YAML is installed
 bl_info = {
     "name": "MekTools",
-    "id_name": "mt",
-    "author": "G3ru1a, Meku Maki",
+    "id_name": "MekTools",
+    "author": "G3ru1a, Meku Maki, Skulblaka, ThetaFive",
     "version": (0, 37, 83.1),
     "blender": (4, 0, 0),
     "location": "View3D > UI > Mektools",
-    "description": "Tools To Apply the MekRig",
+    "description": "Helpful tools for importing FFXIV Characters for quick display and character animating and rendering",
     "warning": "warning",
     "doc_url": "url",
-    "category": "MekTools 0.37.83.1",
+    "category": "MT DEV",
 }
 
-import bpy
+import bpy # type: ignore
 
 from .utils.bone_groups import data as bone_groups
 from .utils.tools import get_addon_absolute_path, all_operators_in_module
-from .preferences import addon_preferences
+from .preferences.addon_preferences import MyAddonPreferences
 
 from .panels import armature_controls_panel
 from .panels.armature_controls_panel import VisibilityProperties
@@ -24,11 +24,14 @@ from .panels.steps_panel import VIEW3D_PT_StepsPanel, StepsProperties
 from .panels.dev_panel import VIEW3D_PT_DevPanel, DevProperties
 from .panels.links_panel import VIEW3D_PT_LinksPanel
 from .panels.inout_panel import VIEW3D_PT_InOutPanel
+from .panels.importexport_mek import VIEW3D_IMPORT_AND_EXPORT_MEK
 
 from .operators import custom_shapes_operator
 from .operators import armature_control_operators
 from .operators import dev_operators
 from .operators import util_operators
+from .operators import alpha_fix_operator
+from .operators import normals_fix_operator
 
 # Property to store the last active object
 # bpy.types.Scene.last_active_object = bpy.props.PointerProperty(type=bpy.types.Object)
@@ -91,11 +94,14 @@ def register():
     bpy.utils.register_class(VIEW3D_PT_InOutPanel)
     bpy.utils.register_class(VIEW3D_PT_StepsPanel)
     bpy.utils.register_class(armature_controls_panel.VIEW3D_PT_ControlsPanel)
+    bpy.utils.register_class(VIEW3D_IMPORT_AND_EXPORT_MEK)
 
     ## Operators
     bpy.utils.register_class(custom_shapes_operator.ARMATURE_OT_CustomShapes)
     all_operators_in_module(armature_control_operators, register=True)
     all_operators_in_module(util_operators, register=True)
+    bpy.utils.register_class(alpha_fix_operator.AlphaFix_Mek)
+    bpy.utils.register_class(normals_fix_operator.NormalsFix_Mek)
 
 
 def unregister():
@@ -119,11 +125,14 @@ def unregister():
     bpy.utils.unregister_class(VIEW3D_PT_InOutPanel)
     bpy.utils.unregister_class(VIEW3D_PT_StepsPanel)
     bpy.utils.unregister_class(armature_controls_panel.VIEW3D_PT_ControlsPanel)
+    bpy.utils.unregister_class(VIEW3D_IMPORT_AND_EXPORT_MEK)
 
     ## Operators
     bpy.utils.unregister_class(custom_shapes_operator.ARMATURE_OT_CustomShapes)
     all_operators_in_module(armature_control_operators, register=False)
     all_operators_in_module(util_operators, register=False)
+    bpy.utils.unregister_class(alpha_fix_operator.AlphaFix_Mek)
+    bpy.utils.unregister_class(normals_fix_operator.NormalsFix_Mek)
 
     
 

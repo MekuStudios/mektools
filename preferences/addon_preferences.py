@@ -1,7 +1,7 @@
-import bpy
+import bpy  # type: ignore
 
 # Addon Preferences class
-class MekAddonPreferences(bpy.types.AddonPreferences):
+class MyAddonPreferences(bpy.types.AddonPreferences):
     bl_idname = __name__
 
     # Add a toggle property to control the "Development" panel visibility

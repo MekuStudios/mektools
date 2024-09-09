@@ -1,13 +1,13 @@
 name: "MekTools"
-id_name: "mt"
-author: "G3ru1a"
-version: [0, 37]
+id_name: "MekTools"
+author: "G3ru1a, Meku Maki, Skulblaka, ThetaFive"
+version: [0, 37, 83.1]
 blender: [4, 0, 0]
 location: "View3D > UI > Mektools"
-description: ""
+description: "Helpful tools for importing FFXIV Characters for quick display and character animating and rendering"
 warning: ""
 doc_url: ""
-category: "MekTools 0.37a"
+category: "MT DEV"
 custom_shapes_filename: "MekShapes.blend"
 yaml_files_folder: "dump"
 rig_master_files: "rig_configurations"
