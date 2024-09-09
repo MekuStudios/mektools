@@ -1,7 +1,7 @@
 name: "MekTools"
 id_name: "MekTools"
 author: "G3ru1a, Meku Maki, Skulblaka, ThetaFive"
-version: [0, 37, 83.1]
+version: [0, 37, 95]
 blender: [4, 0, 0]
 location: "View3D > UI > Mektools"
 description: "Helpful tools for importing FFXIV Characters for quick display and character animating and rendering"
