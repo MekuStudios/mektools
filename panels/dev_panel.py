@@ -1,6 +1,6 @@
 from ..utils.config import data as config
 from ..utils import yaml_files
-import bpy
+import bpy # type: ignore
 
 def yaml_files_enum_callback(self, context):
     return yaml_files.get_editable_files()
@@ -43,6 +43,7 @@ class VIEW3D_PT_DevPanel(bpy.types.Panel):
     bl_region_type = "UI"
     bl_category = config["category"]
 
+    @classmethod
     def poll(cls, context):
         # Access addon preferences to check if the panel should be shown
         prefs = bpy.context.preferences.addons[__name__].preferences
