@@ -43,6 +43,22 @@ from .operators import util_operators
 #     # Your custom code to run when an armature is selected
 #     print(f"Selected armature: {armature.name}")
 
+# Addon Preferences class
+class MyAddonPreferences(bpy.types.AddonPreferences):
+    bl_idname = __name__
+
+    # Add a toggle property to control the "Development" panel visibility
+    enable_development_panel: bpy.props.BoolProperty(
+        name="Enable Development Panel",
+        description="Show or hide the Development panel in the N-panel",
+        default=False
+    )
+
+    def draw(self, context):
+        layout = self.layout
+        layout.prop(self, "enable_development_panel")
+
+
 def register_props():
     bpy.utils.register_class(VisibilityProperties)
     bpy.types.Scene.visibility_props = bpy.props.PointerProperty(type=VisibilityProperties)
@@ -81,6 +97,7 @@ def register():
         bpy.types.Scene.dev_props = bpy.props.PointerProperty(type=DevProperties)
         bpy.utils.register_class(VIEW3D_PT_DevPanel)
         all_operators_in_module(dev_operators, register=True)
+    bpy.utils.register_class(MyAddonPreferences)
 
     # Dawntrail Functionality
 
@@ -108,6 +125,7 @@ def unregister():
         del bpy.types.Scene.dev_props
         bpy.utils.unregister_class(VIEW3D_PT_DevPanel)
         all_operators_in_module(dev_operators, register=False)
+    bpy.utils.unregister_class(MyAddonPreferences)
 
     # Dawntrail Functionality
 
