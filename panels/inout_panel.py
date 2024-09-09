@@ -1,5 +1,5 @@
 from ..utils.config import data as config
-import bpy
+import bpy # type: ignore
 
 # TODO: FIX BUG WHERE FOLDER OPENS FOR DUMP ONLY
 
@@ -9,12 +9,6 @@ class VIEW3D_PT_InOutPanel(bpy.types.Panel):
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
     bl_category = config["category"]
-
-    @classmethod
-    def poll(cls, context):
-        # Access addon preferences to check if the panel should be shown
-        prefs = bpy.context.preferences.addons[__name__].preferences
-        return prefs.enable_development_panel
 
     def draw(self, context):
         layout = self.layout
