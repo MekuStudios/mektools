@@ -16,7 +16,6 @@ import bpy # type: ignore
 
 from .utils.bone_groups import data as bone_groups
 from .utils.tools import get_addon_absolute_path, all_operators_in_module
-from .preferences.addon_preferences import MyAddonPreferences
 
 from .panels import armature_controls_panel
 from .panels.armature_controls_panel import VisibilityProperties
@@ -80,12 +79,12 @@ def register():
     # bpy.app.handlers.depsgraph_update_post.append(armature_selection_handler)
 
     # Development
-    # if config["production"] is False:
-    #     bpy.utils.register_class(DevProperties)
-    #     bpy.types.Scene.dev_props = bpy.props.PointerProperty(type=DevProperties)
-    #     bpy.utils.register_class(VIEW3D_PT_DevPanel)
-    #     all_operators_in_module(dev_operators, register=True)
-    # bpy.utils.register_class(MyAddonPreferences)
+    if config["production"] is False:
+        bpy.utils.register_class(DevProperties)
+        bpy.types.Scene.dev_props = bpy.props.PointerProperty(type=DevProperties)
+        bpy.utils.register_class(VIEW3D_PT_DevPanel)
+        all_operators_in_module(dev_operators, register=True)
+
 
     # Dawntrail Functionality
 
@@ -107,8 +106,8 @@ def register():
 def unregister():
     unregister_props()
     # Listener
-    # bpy.app.handlers.depsgraph_update_post.remove(armature_selection_handler)
-    # del bpy.types.Scene.last_active_object
+    bpy.app.handlers.depsgraph_update_post.remove(armature_selection_handler)
+    del bpy.types.Scene.last_active_object
 
     # Development
     if config["production"] is False:
@@ -116,7 +115,7 @@ def unregister():
          del bpy.types.Scene.dev_props
          bpy.utils.unregister_class(VIEW3D_PT_DevPanel)
          all_operators_in_module(dev_operators, register=False)
-    bpy.utils.unregister_class(MyAddonPreferences)
+
 
     # Dawntrail Functionality
 

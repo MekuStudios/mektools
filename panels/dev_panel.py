@@ -43,11 +43,11 @@ class VIEW3D_PT_DevPanel(bpy.types.Panel):
     bl_region_type = "UI"
     bl_category = config["category"]
 
-    @classmethod
-    def poll(cls, context):
-        # Access addon preferences to check if the panel should be shown
-        prefs = bpy.context.preferences.addons[__name__].preferences
-        return prefs.enable_development_panel
+    # @classmethod
+    # def poll(cls, context):
+    #     # Access addon preferences to check if the panel should be shown
+    #     prefs = bpy.context.preferences.addons[__name__].preferences # This causes an error because its trying to look for the BL Info stuff but can't find it in this .py
+    #     return prefs.enable_development_panel
     
     def draw(self, context):
         layout = self.layout
