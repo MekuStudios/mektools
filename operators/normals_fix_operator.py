@@ -1,7 +1,7 @@
 from ..utils.config import data as config
 import bpy # type: ignore
 
-class NormalsFix_Mek(bpy.types.Operator):
+class OBJECt_OT_SplitNormals(bpy.types.Operator):
     bl_label = "Normals Fix"
     bl_idname = ".".join((config["id_name"], "normals_fix"))
     bl_description = "Clear Custom Split Normals if the model looks kinda jank for some reasons."

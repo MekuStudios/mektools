@@ -1,7 +1,7 @@
 from ..utils.config import data as config
 import bpy # type: ignore
 
-class AlphaFix_Mek(bpy.types.Operator):
+class MATERIAL_OT_AlphaFix(bpy.types.Operator):
     bl_label = "Alpha Fix"
     bl_idname = ".".join((config["id_name"], "alpha_fix"))
 
