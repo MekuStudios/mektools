@@ -1,5 +1,5 @@
 from ..utils.config import data as config
-import bpy
+import bpy # type: ignore
 
 class VIEW3D_PT_LinksPanel(bpy.types.Panel):
     bl_label = config["category"]

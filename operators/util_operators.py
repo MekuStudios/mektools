@@ -1,5 +1,5 @@
 import bpy, yaml # type: ignore
-from bpy_extras.io_utils import ExportHelper, ImportHelper
+from bpy_extras.io_utils import ExportHelper, ImportHelper # type: ignore
 from ..utils.config import data as config
 from ..utils.tools import get_addon_absolute_path
 import os

@@ -1,5 +1,5 @@
 from ..utils.config import data as config
-import bpy
+import bpy # type: ignore
 
 # TODO: FIX BUG WHERE FOLDER OPENS FOR DUMP ONLY
 

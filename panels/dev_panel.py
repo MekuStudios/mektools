@@ -1,6 +1,6 @@
 from ..utils.config import data as config
 from ..utils import yaml_files
-import bpy
+import bpy # type: ignore
 
 def yaml_files_enum_callback(self, context):
     return yaml_files.get_editable_files()
@@ -42,12 +42,18 @@ class VIEW3D_PT_DevPanel(bpy.types.Panel):
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_category = config["category"]
+
+    # @classmethod
+    # def poll(cls, context):
+    #     # Access addon preferences to check if the panel should be shown
+    #     prefs = bpy.context.preferences.addons[__name__].preferences # This causes an error because its trying to look for the BL Info stuff but can't find it in this .py
+    #     return prefs.enable_development_panel
     
     def draw(self, context):
         layout = self.layout
         props = context.scene.dev_props
 
-        # TODO: Add a way to export/import the rigfile
+        # TODO: Add a way to export/import the rigfile-- ((wait you did this already right? - Meku))
         layout.label(text="Import / Export", icon='TEMP')
         row = layout.row()
         op = row.operator(".".join((config["id_name"], "yaml_import")), text="Import YAML", icon="IMPORT")
