@@ -3,7 +3,7 @@ bl_info = {
     "name": "MekTools",
     "id_name": "MekTools",
     "author": "G3ru1a, Meku Maki, Skulblaka, ThetaFive",
-    "version": (0, 37, 95),
+    "version": (0, 37, 96),
     "blender": (4, 0, 0),
     "location": "View3D > UI > Mektools",
     "description": "Helpful tools for importing FFXIV Characters for quick display and character animating and rendering",
@@ -23,7 +23,7 @@ from .panels.steps_panel import VIEW3D_PT_StepsPanel, StepsProperties
 from .panels.dev_panel import VIEW3D_PT_DevPanel, DevProperties
 from .panels.links_panel import VIEW3D_PT_LinksPanel
 from .panels.inout_panel import VIEW3D_PT_InOutPanel
-from .panels.importexport_mek import VIEW3D_IMPORT_AND_EXPORT_MEK
+from .panels.importexport import VIEW3D_IMPORT_AND_EXPORT_FBX
 
 from .operators import custom_shapes_operator
 from .operators import armature_control_operators
@@ -93,21 +93,21 @@ def register():
     bpy.utils.register_class(VIEW3D_PT_InOutPanel)
     bpy.utils.register_class(VIEW3D_PT_StepsPanel)
     bpy.utils.register_class(armature_controls_panel.VIEW3D_PT_ControlsPanel)
-    bpy.utils.register_class(VIEW3D_IMPORT_AND_EXPORT_MEK)
+    bpy.utils.register_class(VIEW3D_IMPORT_AND_EXPORT_FBX)
 
     ## Operators
     bpy.utils.register_class(custom_shapes_operator.ARMATURE_OT_CustomShapes)
     all_operators_in_module(armature_control_operators, register=True)
     all_operators_in_module(util_operators, register=True)
-    bpy.utils.register_class(alpha_fix_operator.AlphaFix_Mek)
-    bpy.utils.register_class(normals_fix_operator.NormalsFix_Mek)
+    bpy.utils.register_class(alpha_fix_operator.MATERIAL_OT_AlphaFix)
+    bpy.utils.register_class(normals_fix_operator.OBJECt_OT_SplitNormals)
 
 
 def unregister():
     unregister_props()
     # Listener
-    bpy.app.handlers.depsgraph_update_post.remove(armature_selection_handler)
-    del bpy.types.Scene.last_active_object
+    # bpy.app.handlers.depsgraph_update_post.remove(armature_selection_handler)
+    # del bpy.types.Scene.last_active_object
 
     # Development
     if config["production"] is False:
@@ -124,14 +124,14 @@ def unregister():
     bpy.utils.unregister_class(VIEW3D_PT_InOutPanel)
     bpy.utils.unregister_class(VIEW3D_PT_StepsPanel)
     bpy.utils.unregister_class(armature_controls_panel.VIEW3D_PT_ControlsPanel)
-    bpy.utils.unregister_class(VIEW3D_IMPORT_AND_EXPORT_MEK)
+    bpy.utils.unregister_class(VIEW3D_IMPORT_AND_EXPORT_FBX)
 
     ## Operators
     bpy.utils.unregister_class(custom_shapes_operator.ARMATURE_OT_CustomShapes)
     all_operators_in_module(armature_control_operators, register=False)
     all_operators_in_module(util_operators, register=False)
-    bpy.utils.unregister_class(alpha_fix_operator.AlphaFix_Mek)
-    bpy.utils.unregister_class(normals_fix_operator.NormalsFix_Mek)
+    bpy.utils.unregister_class(alpha_fix_operator.MATERIAL_OT_AlphaFix)
+    bpy.utils.unregister_class(normals_fix_operator.OBJECt_OT_SplitNormals)
 
     
 
